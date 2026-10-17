@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3サイズ シミュレーター</title>
+<!-- CSP: GitHub Pages は HTTP ヘッダーを設定できないので meta で指定する。script / style は ハッシュ で許可(更新手順は README) -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-c8G9toCSkFcVowKtVC1/TWOwwcT6CjMVETkakBWoxLo='; style-src 'sha256-u9pnl5iPePBCGiDRrLhOxycsAH9EQy7WPebpIs1Bs/8='; font-src 'self'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="あなたの3サイズはいくつ？ 名前を入れて、いちばん近いキャラクターと判定を調べよう。">
 <meta property="og:type" content="website">
 <meta property="og:title" content="3サイズ シミュレーター">
@@ -19,8 +21,8 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🦖%3C/text%3E%3C/svg%3E">
 <style>
   /* 書体は Google Fonts から取得し、使う文字だけに subset して fonts/ に同梱(SIL OFL 1.1) */
-  @font-face { font-family: "Zen Maru Gothic"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-500_Claude-10-17-2026_04-46-19.woff2") format("woff2"); }
-  @font-face { font-family: "Zen Maru Gothic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-700_Claude-10-17-2026_04-46-19.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-500_Claude-10-17-2026_05-31-42.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-700_Claude-10-17-2026_05-31-42.woff2") format("woff2"); }
   @font-face { font-family: "Dela Gothic One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/DelaGothicOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
   @font-face { font-family: "Yuji Boku"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YujiBoku-400_Claude-10-17-2026_04-44-51.woff2") format("woff2"); }
   @font-face { font-family: "Shippori Mincho B1"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ShipporiMinchoB1-400_Claude-10-17-2026_04-44-51.woff2") format("woff2"); }
@@ -192,7 +194,7 @@
   <p class="lead">あなたの3サイズはいくつ？</p>
 
   <form id="form" autocomplete="off">
-    <input id="name" type="text" placeholder="名前を入力" maxlength="1000" aria-label="名前">
+    <input id="name" type="text" placeholder="名前を入力" aria-label="名前">
     <button type="submit">測定</button>
   </form>
   <p id="error" role="alert"></p>
@@ -243,6 +245,7 @@
 "use strict";
 
 const MAX_SIZE = 999;
+const NAME_MAX = 1000; // 名前の最大文字数。入力欄の maxlength と、analyze() の検証の両方で使う。
 
 // 「xxx,xxx,xxx」(各1〜3桁)。NFKC 正規化後なので全角数字・全角カンマも通る。
 const CHEAT_RE = /^(\d{1,3})\s*[,、]\s*(\d{1,3})\s*[,、]\s*(\d{1,3})$/;
@@ -437,6 +440,9 @@ function ranking(sizes) {
 }
 
 async function analyze(rawName) {
+  // 入力欄の maxlength は貼り付け以外の手段(開発者ツールなど)では素通りするので、ここでも検証する。
+  // 正規化(NFKC)で文字数が増える文字があるため、正規化の前の長さで見る。
+  if (rawName.length > NAME_MAX) throw new Error(`名前は${NAME_MAX}文字までです`);
   const name = rawName.normalize("NFKC").trim();
   if (!name) throw new Error("名前を入力してください");
   // 裏技: 「バスト,ウエスト,ヒップ」を直接入力すると、ハッシュを通さずそのまま3サイズになる。
@@ -592,6 +598,8 @@ function render(r) {
   $("hash").textContent = r.hash ?? "";
   $("result").hidden = false;
 }
+
+$("name").maxLength = NAME_MAX;
 
 $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
