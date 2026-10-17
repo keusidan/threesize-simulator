@@ -5,31 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3サイズ シミュレーター</title>
 <style>
+  /* 初期状態は白黒。結果が出ると JS が --accent / --on-accent / --tint を上書きする。 */
   :root {
-    --bg: #fff7fb;
+    --bg: #f4f4f4;
     --card: #ffffff;
-    --text: #2b2230;
-    --muted: #7d6f86;
-    --accent: #e0408f;
-    --border: #f0d9e6;
-    --bar-bg: #f5e8f0;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #1a1a1a;
+    --on-accent: #ffffff;
+    --tint: 0%;
+    --border: #dcdcdc;
+    --bar-bg: #e6e6e6;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1c1620;
-      --card: #28202e;
-      --text: #f4eaf7;
-      --muted: #a898b2;
-      --accent: #ff6fb1;
-      --border: #3d3245;
-      --bar-bg: #3a2f42;
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #eeeeee;
+      --muted: #9a9a9a;
+      --accent: #eeeeee;
+      --on-accent: #111111;
+      --border: #333333;
+      --bar-bg: #333333;
     }
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     padding: 24px 16px 48px;
-    background: var(--bg);
+    background: color-mix(in srgb, var(--accent) var(--tint), var(--bg));
+    transition: background .5s;
     color: var(--text);
     font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
     line-height: 1.6;
@@ -53,7 +58,7 @@
     padding: 12px 18px;
     font-size: 1rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--on-accent);
     background: var(--accent);
     border: 0;
     border-radius: 10px;
@@ -69,17 +74,30 @@
     border-radius: 14px;
   }
   .card[hidden] { display: none; }
-  .verdict { text-align: center; margin-bottom: 16px; }
+  .verdict {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--on-accent);
+    transition: background .5s, color .5s;
+  }
   .verdict .emoji { font-size: 3rem; line-height: 1.2; }
-  .verdict .label { font-size: 2.4rem; font-weight: 800; color: var(--accent); }
+  .verdict .label { font-size: 2.4rem; font-weight: 800; }
   .verdict .label.long { font-size: 1.7rem; }
-  .verdict .reading { color: var(--muted); font-size: .85rem; min-height: 1.2em; }
-  .verdict .comment { color: var(--muted); margin: 4px 0 0; }
+  .verdict .reading { font-size: .85rem; min-height: 1.2em; opacity: .8; }
+  .verdict .comment { margin: 4px 0 0; }
+  .verdict .color { margin-top: 8px; font-size: .8rem; font-family: ui-monospace, monospace; opacity: .8; }
   .size { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 8px; margin: 6px 0; }
   .size .name { font-size: .9rem; color: var(--muted); }
   .size .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
   .bar { height: 12px; background: var(--bar-bg); border-radius: 6px; overflow: hidden; }
   .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
+  /* バスト=R / ウエスト=G / ヒップ=B の純色 */
+  .size:nth-child(1) .bar > span { background: #ff3b30; }
+  .size:nth-child(2) .bar > span { background: #2fd158; }
+  .size:nth-child(3) .bar > span { background: #3b82ff; }
   h2 { font-size: 1rem; margin: 20px 0 6px; }
   .nearest { display: flex; align-items: center; gap: 12px; }
   .nearest .emoji { font-size: 2.4rem; }
@@ -92,8 +110,8 @@
 </head>
 <body>
 <main>
-  <h1>📏 3サイズ シミュレーター</h1>
-  <p class="lead">名前を入れると、ハッシュ値からバスト・ウエスト・ヒップ(各 0〜999)を算出し、いちばん近いキャラクターと判定を出します。同じ名前なら必ず同じ結果です。</p>
+  <h1>3サイズ シミュレーター</h1>
+  <p class="lead">名前を入れると、ハッシュ値からバスト・ウエスト・ヒップ(各 0〜999)を算出し、いちばん近いキャラクターと判定を出します。同じ名前なら必ず同じ結果です。測定すると、バストが赤・ウエストが緑・ヒップが青になって、あなたの色に染まります。</p>
 
   <form id="form" autocomplete="off">
     <input id="name" type="text" placeholder="名前を入力" maxlength="64" aria-label="名前">
@@ -107,6 +125,7 @@
       <div class="label" id="v-label"></div>
       <div class="reading" id="v-reading"></div>
       <p class="comment" id="v-comment"></p>
+      <div class="color" id="v-color"></div>
     </div>
 
     <div id="sizes"></div>
@@ -364,12 +383,44 @@ async function analyze(rawName) {
 const $ = (id) => document.getElementById(id);
 const SIZE_LABELS = ["バスト", "ウエスト", "ヒップ"];
 
+// 3サイズ(0〜999)を R/G/B(0〜255)に対応させる。
+const toRgb = (sizes) => sizes.map((v) => Math.round((v / MAX_SIZE) * 255));
+
+// WCAG の相対輝度。背景色の上に載せる文字色(黒/白)の選択に使う。
+function luminance([r, g, b]) {
+  const lin = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+// 黒文字と白文字のうち、コントラスト比が高いほうを返す。
+const textColorOn = (rgb) => (luminance(rgb) > 0.179 ? "#111111" : "#ffffff");
+
+// null を渡すと初期の白黒に戻る。
+function applyTheme(rgb) {
+  const root = document.documentElement.style;
+  if (!rgb) {
+    ["--accent", "--on-accent", "--tint"].forEach((k) => root.removeProperty(k));
+    return;
+  }
+  root.setProperty("--accent", `rgb(${rgb.join(",")})`);
+  root.setProperty("--on-accent", textColorOn(rgb));
+  root.setProperty("--tint", "14%");
+}
+
 function render(r) {
   $("v-emoji").textContent = r.verdict.emoji;
   $("v-label").textContent = r.verdict.label;
   $("v-label").classList.toggle("long", r.verdict.label.length > 3);
   $("v-reading").textContent = r.verdict.reading ? `(${r.verdict.reading})` : "";
   $("v-comment").textContent = `${r.name}さん、${r.comment}`;
+
+  const rgb = toRgb(r.sizes);
+  const hex = "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("").toUpperCase();
+  $("v-color").textContent = `R${rgb[0]} G${rgb[1]} B${rgb[2]}  ${hex}`;
+  applyTheme(rgb);
 
   $("sizes").replaceChildren(...r.sizes.map((v, i) => {
     const row = document.createElement("div");
@@ -404,6 +455,7 @@ $("form").addEventListener("submit", async (e) => {
     render(await analyze($("name").value));
   } catch (err) {
     $("result").hidden = true;
+    applyTheme(null);
     $("error").textContent = err.message;
   }
 });
