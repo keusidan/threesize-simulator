@@ -384,18 +384,22 @@ const hipBustGap = ([b, , h]) => Math.max(b, h) / Math.min(b, h); // バスト�
 const isCurvy = (s) => waistRatio(s) <= 0.8 && hipBustGap(s) <= 1.3; // くびれ型
 
 const HUMAN_VERDICTS = [
-  { id: "warabe", label: "童", reading: "わらべ", emoji: "🧒", font: "Hachi Maru Pop", test: (s) => Math.max(...s) <= 60 },
-  { id: "hoso", label: "細", reading: "ほそ", emoji: "🪡", font: "Zen Kurenaido", test: ([b, w, h]) => b <= 75 && w <= 55 && h <= 80 },
-  { id: "tsuya", label: "艶", reading: "つや", emoji: "💋", font: "Yuji Mai", test: (s) => waistRatio(s) <= 0.65 && hipBustGap(s) <= 1.3 && Math.min(s[0], s[2]) >= 80 },
-  { id: "hana", label: "華", reading: "はな", emoji: "🌺", font: "Kaisei Decol", test: (s) => isCurvy(s) && Math.min(s[0], s[2]) >= 95 },
-  { id: "rin", label: "凛", reading: "りん", emoji: "🎐", font: "Shippori Mincho B1", test: (s) => isCurvy(s) && Math.max(s[0], s[2]) <= 80 },
-  { id: "waka", label: "若", reading: "わか", emoji: "🌱", font: "Kiwi Maru", test: ([b, w, h]) => b <= 80 && w <= 62 && h <= 86 },
-  { id: "tsubo", label: "壺", reading: "つぼ", emoji: "🏺", font: "Zen Old Mincho", test: ([b, w, h]) => h >= b * 1.3 && h < b * 1.6 && w <= h * 0.7 },
-  { id: "momo", label: "桃", reading: "もも", emoji: "🍑", font: "Mochiy Pop One", test: ([b, w, h]) => h >= b * 1.15 && h < b * 1.4 && w <= h * 0.85 },
-  { id: "uri", label: "瓜", reading: "うり", emoji: "🍈", font: "Yusei Magic", test: ([b, w, h]) => b >= h * 1.15 && b < h * 1.4 && w <= b * 0.85 },
-  { id: "take", label: "竹", reading: "たけ", emoji: "🎋", font: "Yuji Boku", test: (s) => shapeOf(s) === "even" && s[0] + s[1] + s[2] >= 240 && s[0] + s[1] + s[2] < 300 },
-  { id: "maru", label: "丸", reading: "まる", emoji: "🟠", font: "Potta One", test: (s) => shapeOf(s) === "even" && s[0] + s[1] + s[2] >= 300 },
+  { label: "童", reading: "わらべ", emoji: "🧒", font: "Hachi Maru Pop", test: (s) => Math.max(...s) <= 60 },
+  { label: "細", reading: "ほそ", emoji: "🪡", font: "Zen Kurenaido", test: ([b, w, h]) => b <= 75 && w <= 55 && h <= 80 },
+  { label: "艶", reading: "つや", emoji: "💋", font: "Yuji Mai", test: (s) => waistRatio(s) <= 0.65 && hipBustGap(s) <= 1.3 && Math.min(s[0], s[2]) >= 80 },
+  { label: "華", reading: "はな", emoji: "🌺", font: "Kaisei Decol", test: (s) => isCurvy(s) && Math.min(s[0], s[2]) >= 95 },
+  { label: "凛", reading: "りん", emoji: "🎐", font: "Shippori Mincho B1", test: (s) => isCurvy(s) && Math.max(s[0], s[2]) <= 80 },
+  { label: "若", reading: "わか", emoji: "🌱", font: "Kiwi Maru", test: ([b, w, h]) => b <= 80 && w <= 62 && h <= 86 },
+  { label: "壺", reading: "つぼ", emoji: "🏺", font: "Zen Old Mincho", test: ([b, w, h]) => h >= b * 1.3 && h < b * 1.6 && w <= h * 0.7 },
+  { label: "桃", reading: "もも", emoji: "🍑", font: "Mochiy Pop One", test: ([b, w, h]) => h >= b * 1.15 && h < b * 1.4 && w <= h * 0.85 },
+  { label: "瓜", reading: "うり", emoji: "🍈", font: "Yusei Magic", test: ([b, w, h]) => b >= h * 1.15 && b < h * 1.4 && w <= b * 0.85 },
+  { label: "竹", reading: "たけ", emoji: "🎋", font: "Yuji Boku", test: (s) => shapeOf(s) === "even" && s[0] + s[1] + s[2] >= 240 && s[0] + s[1] + s[2] < 300 },
+  { label: "丸", reading: "まる", emoji: "🟠", font: "Potta One", test: (s) => shapeOf(s) === "even" && s[0] + s[1] + s[2] >= 300 },
 ];
+
+// 判定の番号(共有ページ名 r/<番号>.html)。表は 体型の並び順 × 段階 で 0〜34、人間サイズの判定はその続きの 35〜45。
+const TIER_COUNT = TIER_LIMITS.length + 1;
+const TABLE_SIZE = Object.keys(VERDICT_TABLE).length * TIER_COUNT;
 
 function judge(sizes) {
   const shape = shapeOf(sizes);
@@ -405,10 +409,10 @@ function judge(sizes) {
   const tier = TIER_LIMITS.filter((limit) => size >= limit).length;
   if (tier === 0) {
     const human = HUMAN_VERDICTS.find((v) => v.test(sizes));
-    if (human) return { id: human.id, label: human.label, reading: human.reading, emoji: human.emoji, font: human.font };
+    if (human) return { id: TABLE_SIZE + HUMAN_VERDICTS.indexOf(human), label: human.label, reading: human.reading, emoji: human.emoji, font: human.font };
   }
   const [label, reading, emoji, font] = VERDICT_TABLE[shape][tier];
-  return { id: `${shape}-${tier}`, label, reading, emoji, font };
+  return { id: Object.keys(VERDICT_TABLE).indexOf(shape) * TIER_COUNT + tier, label, reading, emoji, font };
 }
 
 // 名前を正規化し、SHA-256 のバイト列(32 byte)を返す。
@@ -490,10 +494,9 @@ function shareText(r) {
   ].join("\n");
 }
 
-// 判定ごとの共有ページ(r/<id><SHARE_PAGE_SUFFIX>.html)。判定ごとの OGP 画像を持ち、開くと本体へ移動する。
+// 判定ごとの共有ページ(r/<判定の番号>.html)。判定ごとの OGP 画像を持ち、開くと本体へ移動する。
 // クローラは JavaScript を実行しないので、サムネイルを判定で変えるにはページ自体を判定ごとに用意するしかない。
-const SHARE_PAGE_SUFFIX = "_Claude-10-17-2026_05-05-49";
-const shareUrl = (verdict) => new URL(`r/${verdict.id}${SHARE_PAGE_SUFFIX}.html`, location.href).href;
+const shareUrl = (verdict) => new URL(`r/${verdict.id}.html`, location.href).href;
 
 let currentShare = { text: "", url: "" };
 
