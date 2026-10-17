@@ -4,10 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3サイズ シミュレーター</title>
+<meta name="description" content="あなたの3サイズはいくつ？ 名前を入れて、いちばん近いキャラクターと判定を調べよう。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="3サイズ シミュレーター">
+<meta property="og:description" content="あなたの3サイズはいくつ？ 名前を入れて、いちばん近いキャラクターと判定を調べよう。">
+<meta property="og:url" content="https://keusidan.github.io/threesize-simulator/">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="https://keusidan.github.io/threesize-simulator/ogp_Claude-10-17-2026_04-32-42.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="3サイズシミュレーターの結果画面。判定「ゴジラ」、バスト700・ウエスト900・ヒップ800。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://keusidan.github.io/threesize-simulator/ogp_Claude-10-17-2026_04-32-42.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E🦖%3C/text%3E%3C/svg%3E">
 <style>
   /* 書体は Google Fonts から取得し、使う文字だけに subset して fonts/ に同梱(SIL OFL 1.1) */
-  @font-face { font-family: "Zen Maru Gothic"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-500_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
-  @font-face { font-family: "Zen Maru Gothic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-700_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-500_Claude-10-17-2026_04-31-12.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-700_Claude-10-17-2026_04-31-12.woff2") format("woff2"); }
   @font-face { font-family: "Dela Gothic One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/DelaGothicOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
   @font-face { font-family: "Yuji Boku"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YujiBoku-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
   @font-face { font-family: "Shippori Mincho B1"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ShipporiMinchoB1-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
@@ -61,7 +74,7 @@
   }
   /* 美だけ特別に虹色。タイルの幅(px)ぶん動かすと継ぎ目なく流れ続ける。 */
   html.rainbow .verdict,
-  html.rainbow button {
+  html.rainbow form button {
     background: var(--rainbow) 0 0 / 1200px 100%;
     color: #111;
     animation: rainbow-flow 8s linear infinite;
@@ -75,7 +88,7 @@
   @keyframes rainbow-flow { to { background-position: 1200px 0; } }
   @keyframes rainbow-flow-body { to { background-position: 0 0, 1200px 0; } }
   @media (prefers-reduced-motion: reduce) {
-    html.rainbow .verdict, html.rainbow button, html.rainbow body { animation: none; }
+    html.rainbow .verdict, html.rainbow form button, html.rainbow body { animation: none; }
   }
   * { box-sizing: border-box; }
   body {
@@ -152,6 +165,23 @@
   .nearest .meta, .runner li, footer, .hash { color: var(--muted); font-size: .85rem; }
   .runner { margin: 0; padding-left: 1.2em; }
   .hash { word-break: break-all; font-family: ui-monospace, monospace; }
+  .share { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  .share .btn {
+    flex: 1 1 auto;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: .9rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .share .btn:hover { border-color: var(--accent); filter: none; }
+  .share-status { flex-basis: 100%; min-height: 1.2em; margin: 0; font-size: .85rem; color: var(--muted); text-align: center; }
   footer { margin-top: 24px; text-align: center; }
   footer a { color: inherit; }
 </style>
@@ -173,6 +203,14 @@
       <div class="label" id="v-label"></div>
       <div class="reading" id="v-reading"></div>
       <div class="color" id="v-color"></div>
+    </div>
+
+    <div class="share">
+      <button type="button" class="btn" id="share-native" hidden>共有</button>
+      <a class="btn" id="share-x" target="_blank" rel="noopener noreferrer">X で共有</a>
+      <a class="btn" id="share-line" target="_blank" rel="noopener noreferrer">LINE で共有</a>
+      <button type="button" class="btn" id="share-copy">結果をコピー</button>
+      <p class="share-status" id="share-status" role="status"></p>
     </div>
 
     <div id="sizes"></div>
@@ -418,6 +456,67 @@ function applyTheme(rgb, rainbow = false) {
   root.setProperty("--tint", "14%");
 }
 
+// 共有する文面。名前は含めない(結果の数値と判定だけ)。
+function shareText(r) {
+  const [b, w, h] = r.sizes;
+  return [
+    `3サイズ判定は「${r.verdict.label}」でした ${r.verdict.emoji}`,
+    `バスト${b} / ウエスト${w} / ヒップ${h}`,
+    `いちばん近いキャラ: ${r.ranked[0].c[1]}${r.ranked[0].c[0]}`,
+    "#3サイズシミュレーター",
+  ].join("\n");
+}
+
+// 共有先に渡す URL(クエリやハッシュは付けない)。
+const shareUrl = () => location.origin + location.pathname;
+
+let currentShare = { text: "", url: "" };
+
+function setupShare(r) {
+  const text = shareText(r);
+  const url = shareUrl();
+  currentShare = { text, url };
+  $("share-x").href = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+  $("share-line").href = `https://line.me/R/share?text=${encodeURIComponent(text + "\n" + url)}`;
+  $("share-native").hidden = !navigator.share;
+  $("share-status").textContent = "";
+}
+
+function showShareStatus(message) {
+  $("share-status").textContent = message;
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+  // Clipboard API が使えない環境(古いブラウザ・非セキュア接続)向けの代替。
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.append(ta);
+  ta.select();
+  const ok = document.execCommand("copy");
+  ta.remove();
+  if (!ok) throw new Error("copy failed");
+}
+
+$("share-copy").addEventListener("click", async () => {
+  try {
+    await copyText(`${currentShare.text}\n${currentShare.url}`);
+    showShareStatus("コピーしました");
+  } catch {
+    showShareStatus("コピーできませんでした");
+  }
+});
+
+$("share-native").addEventListener("click", async () => {
+  try {
+    await navigator.share(currentShare);
+  } catch (err) {
+    if (err.name !== "AbortError") showShareStatus("共有できませんでした");
+  }
+});
+
 function render(r) {
   $("v-emoji").textContent = r.verdict.emoji;
   $("v-label").textContent = r.verdict.label;
@@ -451,6 +550,8 @@ function render(r) {
     li.textContent = `${x.c[1]} ${x.c[0]}(${x.c[2]} / ${x.c[3]} / ${x.c[4]}、距離 ${x.d.toFixed(1)})`;
     return li;
   }));
+
+  setupShare(r);
 
   $("hash-box").hidden = !r.hash;
   $("hash").textContent = r.hash ?? "";
