@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3サイズ シミュレーター</title>
+<style>
+  /* 書体は Google Fonts から取得し、使う文字だけに subset して fonts/ に同梱(SIL OFL 1.1) */
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 500; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-500_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Maru Gothic"; font-weight: 700; font-style: normal; font-display: swap; src: url("fonts/ZenMaruGothic-700_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Dela Gothic One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/DelaGothicOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Yuji Boku"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YujiBoku-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Shippori Mincho B1"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ShipporiMinchoB1-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Rampart One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/RampartOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Klee One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/KleeOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Stick"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/Stick-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Yomogi"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/Yomogi-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Potta One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/PottaOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Reggae One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ReggaeOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Hina Mincho"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/HinaMincho-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Yuji Syuku"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YujiSyuku-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Yuji Mai"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YujiMai-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Kaisei Tokumin"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/KaiseiTokumin-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Antique"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ZenAntique-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Mochiy Pop One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/MochiyPopOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Hachi Maru Pop"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/HachiMaruPop-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Yusei Magic"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/YuseiMagic-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "RocknRoll One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/RocknRollOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Old Mincho"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ZenOldMincho-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Kiwi Maru"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/KiwiMaru-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Train One"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/TrainOne-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Kaisei Decol"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/KaiseiDecol-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "New Tegomin"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/NewTegomin-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "Zen Kurenaido"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/ZenKurenaido-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  @font-face { font-family: "DotGothic16"; font-weight: 400; font-style: normal; font-display: swap; src: url("fonts/DotGothic16-400_Claude-10-17-2026_04-20-25.woff2") format("woff2"); }
+  /* 初期状態は白黒。結果が出ると JS が --accent / --on-accent / --tint を上書きする。 */
+  :root {
+    --bg: #f4f4f4;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --accent: #1a1a1a;
+    --on-accent: #ffffff;
+    --tint: 0%;
+    --border: #dcdcdc;
+    --bar-bg: #e6e6e6;
+    --font-body: "Zen Maru Gothic", system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --rainbow: linear-gradient(90deg, hsl(0 90% 76%), hsl(35 95% 74%), hsl(58 90% 72%), hsl(130 70% 72%), hsl(190 85% 72%), hsl(240 85% 80%), hsl(290 80% 78%), hsl(340 90% 78%), hsl(0 90% 76%));
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #eeeeee;
+      --muted: #9a9a9a;
+      --accent: #eeeeee;
+      --on-accent: #111111;
+      --border: #333333;
+      --bar-bg: #333333;
+    }
+  }
+  /* 美だけ特別に虹色。タイルの幅(px)ぶん動かすと継ぎ目なく流れ続ける。 */
+  html.rainbow .verdict,
+  html.rainbow button {
+    background: var(--rainbow) 0 0 / 1200px 100%;
+    color: #111;
+    animation: rainbow-flow 8s linear infinite;
+  }
+  html.rainbow body {
+    background:
+      linear-gradient(color-mix(in srgb, var(--bg) 78%, transparent), color-mix(in srgb, var(--bg) 78%, transparent)),
+      var(--rainbow) 0 0 / 1200px 100%;
+    animation: rainbow-flow-body 8s linear infinite;
+  }
+  @keyframes rainbow-flow { to { background-position: 1200px 0; } }
+  @keyframes rainbow-flow-body { to { background-position: 0 0, 1200px 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    html.rainbow .verdict, html.rainbow button, html.rainbow body { animation: none; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: color-mix(in srgb, var(--accent) var(--tint), var(--bg));
+    transition: background .5s;
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.6;
+  }
+  main { max-width: 560px; margin: 0 auto; }
+  h1 { font-family: "Dela Gothic One", var(--font-body); font-weight: 400; font-size: 1.6rem; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 20px; font-size: 1.05rem; font-weight: 700; }
+  form { display: flex; gap: 8px; }
+  input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    font-size: 1rem;
+    color: var(--text);
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  button {
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--on-accent);
+    background: var(--accent);
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  #error { color: var(--accent); min-height: 1.4em; margin: 8px 0 0; font-size: .9rem; }
+  .card {
+    margin-top: 16px;
+    padding: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .card[hidden] { display: none; }
+  .verdict {
+    text-align: center;
+    margin-bottom: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--on-accent);
+    transition: background .5s, color .5s;
+  }
+  .verdict .emoji { font-size: 3rem; line-height: 1.2; }
+  .verdict .label { font-size: 2.4rem; font-weight: 400; } /* 装飾書体は太字が無いので偽太字を避ける */
+  .verdict .label.long { font-size: 1.7rem; }
+  .verdict .reading { font-size: .85rem; min-height: 1.2em; opacity: .8; }
+  .verdict .color { margin-top: 8px; font-size: .8rem; font-family: "DotGothic16", ui-monospace, monospace; opacity: .8; }
+  .size { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 8px; margin: 6px 0; }
+  .size .name { font-size: .9rem; color: var(--muted); }
+  .size .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .bar { height: 12px; background: var(--bar-bg); border-radius: 6px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
+  /* バスト=R / ウエスト=G / ヒップ=B の純色 */
+  .size:nth-child(1) .bar > span { background: #ff3b30; }
+  .size:nth-child(2) .bar > span { background: #2fd158; }
+  .size:nth-child(3) .bar > span { background: #3b82ff; }
+  h2 { font-size: 1rem; margin: 20px 0 6px; }
+  .nearest { display: flex; align-items: center; gap: 12px; }
+  .nearest .emoji { font-size: 2.4rem; }
+  .nearest .cname { font-size: 1.3rem; font-weight: 800; }
+  .nearest .meta, .runner li, footer, .hash { color: var(--muted); font-size: .85rem; }
+  .runner { margin: 0; padding-left: 1.2em; }
+  .hash { word-break: break-all; font-family: ui-monospace, monospace; }
+  footer { margin-top: 24px; text-align: center; }
+  footer a { color: inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>3サイズ シミュレーター</h1>
+  <p class="lead">あなたの3サイズはいくつ？</p>
+
+  <form id="form" autocomplete="off">
+    <input id="name" type="text" placeholder="名前を入力" maxlength="64" aria-label="名前">
+    <button type="submit">測定</button>
+  </form>
+  <p id="error" role="alert"></p>
+
+  <section id="result" class="card" hidden>
+    <div class="verdict">
+      <div class="emoji" id="v-emoji"></div>
+      <div class="label" id="v-label"></div>
+      <div class="reading" id="v-reading"></div>
+      <div class="color" id="v-color"></div>
+    </div>
+
+    <div id="sizes"></div>
+
+    <h2>いちばん近いキャラクター</h2>
+    <div class="nearest">
+      <div class="emoji" id="n-emoji"></div>
+      <div>
+        <div class="cname" id="n-name"></div>
+        <div class="meta" id="n-meta"></div>
+      </div>
+    </div>
+
+    <h2>惜しかった候補</h2>
+    <ol class="runner" id="runner"></ol>
+
+    <div id="hash-box">
+      <h2>SHA-256</h2>
+      <div class="hash" id="hash"></div>
+    </div>
+  </section>
+
+  <footer>
+    ネタです。実在の人物の体型や、キャラクターの公式設定とは一切関係ありません。<br>
+    書体: Google Fonts(SIL Open Font License 1.1)。<a href="fonts/FONT-LICENSES_+process.argv[1]+.txt">ライセンス全文</a>
+  </footer>
+</main>
+
+<script>
+"use strict";
+
+const MAX_SIZE = 999;
+
+// 「xxx,xxx,xxx」(各1〜3桁)。NFKC 正規化後なので全角数字・全角カンマも通る。
+const CHEAT_RE = /^(\d{1,3})\s*[,、]\s*(\d{1,3})\s*[,、]\s*(\d{1,3})$/;
+
+// キャラクター表: [名前, emoji, バスト, ウエスト, ヒップ]
+// 数値はすべてネタ値。実在作品の公式設定ではない。
+const CHARACTERS = [
+  // 細
+  ["ミジンコ", "🔬", 30, 25, 30],
+  ["もやし", "🌱", 90, 70, 80],
+  ["鉛筆", "✏️", 60, 60, 60],
+  ["一寸法師", "🪡", 120, 100, 120],
+  ["こけし", "🪆", 180, 110, 170],
+  ["森の妖精", "🧚", 70, 50, 72],
+  ["座敷わらし", "👘", 60, 58, 62],
+  ["かぐや姫", "🎋", 82, 60, 88],
+  ["鶴の恩返し", "🦢", 78, 56, 84],
+  ["雪女", "❄️", 80, 62, 86],
+  // 美
+  ["白雪姫", "🍎", 650, 380, 680],
+  ["シンデレラ", "👠", 640, 360, 660],
+  ["人魚", "🧜", 680, 350, 650],
+  ["小野小町", "🌸", 690, 410, 700],
+  ["弁財天", "🎶", 700, 400, 720],
+  ["楊貴妃", "🍑", 710, 450, 730],
+  ["ミロのヴィーナス", "🏛️", 720, 430, 740],
+  ["ギリシャの壺", "🏺", 740, 300, 760],
+  ["天女", "🪽", 750, 420, 770],
+  ["ひょうたん", "🍶", 780, 350, 800],
+  ["九尾の狐", "🦊", 800, 380, 780],
+  ["砂時計", "⏳", 800, 200, 800],
+  ["ヴァルキリー", "🛡️", 820, 500, 830],
+  // 普
+  ["食パン", "🍞", 400, 400, 400],
+  ["豆腐", "🧈", 450, 450, 450],
+  ["浦島太郎", "🐢", 480, 470, 490],
+  ["忍者", "🥷", 480, 400, 470],
+  ["花咲か爺さん", "🌼", 500, 520, 480],
+  ["村人A", "🧑", 500, 500, 500],
+  ["桃太郎", "🍑", 520, 480, 500],
+  ["侍", "⚔️", 540, 500, 520],
+  ["金太郎", "🪓", 560, 520, 540],
+  ["招き猫", "🐱", 600, 560, 580],
+  // 太
+  ["大福", "🍡", 500, 750, 500],
+  ["太鼓", "🥁", 500, 750, 500],
+  ["雪だるま", "⛄", 500, 700, 500],
+  ["樽", "🛢️", 620, 700, 620],
+  ["福助", "🎎", 600, 800, 640],
+  ["鏡餅", "🍘", 600, 780, 600],
+  ["だるま", "🔴", 650, 830, 600],
+  ["布袋様", "😄", 680, 900, 700],
+  ["肉まん", "🥟", 700, 900, 700],
+  ["たぬきの置物", "🦝", 620, 860, 640],
+  ["ずんぐり熊", "🐻", 750, 850, 720],
+  // 獣
+  ["ろくろ首", "🧣", 150, 100, 950],
+  ["大蛇", "🐍", 100, 900, 100],
+  ["烏天狗", "🪶", 900, 150, 200],
+  ["牛鬼", "🐂", 900, 700, 100],
+  ["ゴリラ", "🦍", 950, 500, 300],
+  ["鳳凰", "🔥", 950, 100, 500],
+  ["ケンタウロス", "🐎", 850, 450, 980],
+  ["河童", "🥒", 300, 750, 100],
+  // ゴジラ級
+  ["大仏", "🗿", 850, 800, 900],
+  ["象", "🐘", 870, 920, 880],
+  ["ティラノサウルス", "🦖", 900, 850, 920],
+  ["白鯨", "🐋", 930, 950, 940],
+  ["ドラゴン", "🐉", 940, 860, 900],
+  ["巨大怪獣", "🦖", 950, 950, 950],
+  ["ダイダラボッチ", "⛰️", 980, 920, 990],
+  ["富士山", "🗻", 990, 990, 990],
+  ["地球", "🌍", 999, 999, 999],
+];
+
+// 判定は「全体の大きさ(5段階) × 体型(7種)」の表引き。数値は cm のつもり。
+// 基準は 20 代前半の平均(バスト約 82 / ウエスト約 64 / ヒップ約 89)。
+// 0〜999 の一様乱数だと大半が人間サイズを大きく超えるので、大きいほうを化け物で細かく刻む。
+const SLIM_MAX = [75, 55, 80];        // 3つとも平均より明確に小さければ「細」
+const TIER_LIMITS = [150, 300, 500, 700]; // 平均サイズの区切り。超えるごとに段階が上がる
+
+// [label, reading, emoji, Google Fonts の font-family] を、大きさの段階 0(人間サイズ)〜4(厄災級) の順に並べる。
+const VERDICT_TABLE = {
+  plain: [
+    ["普", "ふつう", "🙂", "Zen Maru Gothic"], ["巨人", "きょじん", "🧌", "Dela Gothic One"],
+    ["鵺", "ぬえ", "🌀", "Yuji Boku"], ["クトゥルフ", "", "🐙", "Shippori Mincho B1"],
+    ["ゴジラ", "", "🦖", "Rampart One"],
+  ],
+  even: [
+    ["無", "む", "⚫", "Klee One"], ["ぬりかべ", "", "🧱", "Stick"],
+    ["のっぺらぼう", "", "😶", "Yomogi"], ["ダイダラボッチ", "", "⛰️", "Potta One"],
+    ["滅", "めつ", "☄️", "Reggae One"],
+  ],
+  hour: [
+    ["美", "び", "✨", "Hina Mincho"], ["九尾の狐", "きゅうびのきつね", "🦊", "Yuji Syuku"],
+    ["妖", "あやかし", "🌙", "Yuji Mai"], ["ラミア", "", "🐍", "Kaisei Tokumin"],
+    ["傾国", "けいこく", "👑", "Zen Antique"],
+  ],
+  barrel: [
+    ["太", "ふと", "🍙", "Mochiy Pop One"], ["福", "ふく", "😄", "Hachi Maru Pop"],
+    ["ぬらりひょん", "", "👴", "Yusei Magic"], ["蝦蟇", "がま", "🐸", "RocknRoll One"],
+    ["富士", "ふじ", "🗻", "Zen Old Mincho"],
+  ],
+  pear: [
+    ["梨", "なし", "🍐", "Kiwi Maru"], ["山姥", "やまんば", "👵", "Yuji Boku"],
+    ["土蜘蛛", "つちぐも", "🕷️", "Train One"], ["絡新婦", "じょろうぐも", "🕸️", "Kaisei Decol"],
+    ["海坊主", "うみぼうず", "🌊", "New Tegomin"],
+  ],
+  vee: [
+    ["武", "ぶ", "💪", "Reggae One"], ["鬼", "おに", "👹", "Dela Gothic One"],
+    ["天狗", "てんぐ", "👺", "Yuji Syuku"], ["牛鬼", "うしおに", "🐂", "Kaisei Tokumin"],
+    ["阿修羅", "あしゅら", "🔱", "Zen Antique"],
+  ],
+  beast: [
+    ["獣", "けもの", "🐗", "Yusei Magic"], ["河童", "かっぱ", "🥒", "Hachi Maru Pop"],
+    ["ろくろ首", "ろくろくび", "🧣", "Zen Kurenaido"], ["キメラ", "", "🦁", "DotGothic16"],
+    ["ヤマタノオロチ", "", "🐍", "Train One"],
+  ],
+};
+
+// 体型は比率だけで決める(大きさには依存しない)。
+function shapeOf([b, w, h]) {
+  const hi = Math.max(b, w, h);
+  const lo = Math.min(b, w, h);
+  const bh = Math.min(b, h);
+  if (lo <= hi * 0.1) return "beast";
+  if (hi <= lo * 1.25) return "even";
+  if (w <= bh * 0.8 && Math.max(b, h) <= bh * 1.3) return "hour";
+  if (w >= Math.max(b, h) * 1.15) return "barrel";
+  if (h >= b * 1.4 && h >= w) return "pear";
+  if (b >= h * 1.4 && b >= w) return "vee";
+  return "plain";
+}
+
+function judge(sizes) {
+  if (sizes.every((v, i) => v <= SLIM_MAX[i])) return { label: "細", reading: "ほそ", emoji: "🪡", font: "Zen Kurenaido" };
+  const shape = shapeOf(sizes);
+  const avg = (sizes[0] + sizes[1] + sizes[2]) / 3;
+  // 極端型は最小値が平均を引き下げて最上位に届かなくなるので、最大値を混ぜて大きさを見る。
+  const size = shape === "beast" ? (Math.max(...sizes) + avg) / 2 : avg;
+  const tier = TIER_LIMITS.filter((limit) => size >= limit).length;
+  const [label, reading, emoji, font] = VERDICT_TABLE[shape][tier];
+  return { label, reading, emoji, font };
+}
+
+// 名前を正規化し、SHA-256 のバイト列(32 byte)を返す。
+async function sha256Bytes(text) {
+  if (!(globalThis.crypto && crypto.subtle)) {
+    throw new Error("このブラウザでは Web Crypto API が使えません(https か localhost で開いてください)");
+  }
+  const data = new TextEncoder().encode(text);
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+}
+
+const toHex = (bytes) => Array.from(bytes, (x) => x.toString(16).padStart(2, "0")).join("");
+
+// ハッシュの先頭 6 byte を 2 byte ずつ使って 0〜999 に落とす。
+function sizesFromHash(bytes) {
+  return [0, 2, 4].map((i) => ((bytes[i] << 8) | bytes[i + 1]) % (MAX_SIZE + 1));
+}
+
+function ranking(sizes) {
+  const dist = (c) => Math.hypot(c[2] - sizes[0], c[3] - sizes[1], c[4] - sizes[2]);
+  return CHARACTERS.map((c) => ({ c, d: dist(c) })).sort((a, b) => a.d - b.d);
+}
+
+async function analyze(rawName) {
+  const name = rawName.normalize("NFKC").trim();
+  if (!name) throw new Error("名前を入力してください");
+  // 裏技: 「バスト,ウエスト,ヒップ」を直接入力すると、ハッシュを通さずそのまま3サイズになる。
+  const cheat = CHEAT_RE.exec(name);
+  if (cheat) {
+    const sizes = cheat.slice(1).map(Number);
+    return { name, hash: null, sizes, verdict: judge(sizes), ranked: ranking(sizes) };
+  }
+  const bytes = await sha256Bytes(name);
+  const sizes = sizesFromHash(bytes);
+  return { name, hash: toHex(bytes), sizes, verdict: judge(sizes), ranked: ranking(sizes) };
+}
+
+// ---- 表示 ----
+const $ = (id) => document.getElementById(id);
+const SIZE_LABELS = ["バスト", "ウエスト", "ヒップ"];
+
+// 3サイズ(0〜999)を R/G/B(0〜255)に対応させる。
+const toRgb = (sizes) => sizes.map((v) => Math.round((v / MAX_SIZE) * 255));
+
+// WCAG の相対輝度。背景色の上に載せる文字色(黒/白)の選択に使う。
+function luminance([r, g, b]) {
+  const lin = (c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+// 黒文字と白文字のうち、コントラスト比が高いほうを返す。
+const textColorOn = (rgb) => (luminance(rgb) > 0.179 ? "#111111" : "#ffffff");
+
+// rgb に null を渡すと初期の白黒に戻る。rainbow が true なら虹色(美の特別演出)。
+function applyTheme(rgb, rainbow = false) {
+  const root = document.documentElement.style;
+  document.documentElement.classList.toggle("rainbow", rainbow);
+  if (!rgb) {
+    ["--accent", "--on-accent", "--tint"].forEach((k) => root.removeProperty(k));
+    return;
+  }
+  root.setProperty("--accent", `rgb(${rgb.join(",")})`);
+  root.setProperty("--on-accent", textColorOn(rgb));
+  root.setProperty("--tint", "14%");
+}
+
+function render(r) {
+  $("v-emoji").textContent = r.verdict.emoji;
+  $("v-label").textContent = r.verdict.label;
+  $("v-label").style.fontFamily = `"${r.verdict.font}", var(--font-body)`;
+  $("v-label").classList.toggle("long", r.verdict.label.length > 3);
+  $("v-reading").textContent = r.verdict.reading ? `(${r.verdict.reading})` : "";
+
+  const rgb = toRgb(r.sizes);
+  const hex = "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("").toUpperCase();
+  $("v-color").textContent = `R${rgb[0]} G${rgb[1]} B${rgb[2]}  ${hex}`;
+  applyTheme(rgb, r.verdict.label === "美");
+
+  $("sizes").replaceChildren(...r.sizes.map((v, i) => {
+    const row = document.createElement("div");
+    row.className = "size";
+    row.innerHTML = '<span class="name"></span><div class="bar"><span></span></div><span class="val"></span>';
+    row.querySelector(".name").textContent = SIZE_LABELS[i];
+    row.querySelector(".bar > span").style.width = `${(v / MAX_SIZE) * 100}%`;
+    row.querySelector(".val").textContent = v;
+    return row;
+  }));
+
+  const [first, ...rest] = r.ranked;
+  const [, , fb, fw, fh] = first.c;
+  $("n-emoji").textContent = first.c[1];
+  $("n-name").textContent = first.c[0];
+  $("n-meta").textContent = `${fb} / ${fw} / ${fh}(距離 ${first.d.toFixed(1)})`;
+
+  $("runner").replaceChildren(...rest.slice(0, 3).map((x) => {
+    const li = document.createElement("li");
+    li.textContent = `${x.c[1]} ${x.c[0]}(${x.c[2]} / ${x.c[3]} / ${x.c[4]}、距離 ${x.d.toFixed(1)})`;
+    return li;
+  }));
+
+  $("hash-box").hidden = !r.hash;
+  $("hash").textContent = r.hash ?? "";
+  $("result").hidden = false;
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("error").textContent = "";
+  try {
+    const result = await analyze($("name").value);
+    // 判定の書体が読み込まれてから表示する(待ちすぎないよう 1.5 秒で打ち切る)。
+    await Promise.race([
+      document.fonts.load(`1em "${result.verdict.font}"`, result.verdict.label).catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
+    render(result);
+  } catch (err) {
+    $("result").hidden = true;
+    applyTheme(null);
+    $("error").textContent = err.message;
+  }
+});
+</script>
+</body>
+</html>
