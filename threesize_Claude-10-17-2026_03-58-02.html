@@ -72,6 +72,8 @@
   .verdict { text-align: center; margin-bottom: 16px; }
   .verdict .emoji { font-size: 3rem; line-height: 1.2; }
   .verdict .label { font-size: 2.4rem; font-weight: 800; color: var(--accent); }
+  .verdict .label.long { font-size: 1.7rem; }
+  .verdict .reading { color: var(--muted); font-size: .85rem; min-height: 1.2em; }
   .verdict .comment { color: var(--muted); margin: 4px 0 0; }
   .size { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 8px; margin: 6px 0; }
   .size .name { font-size: .9rem; color: var(--muted); }
@@ -103,6 +105,7 @@
     <div class="verdict">
       <div class="emoji" id="v-emoji"></div>
       <div class="label" id="v-label"></div>
+      <div class="reading" id="v-reading"></div>
       <p class="comment" id="v-comment"></p>
     </div>
 
@@ -204,36 +207,122 @@ const CHARACTERS = [
   ["地球", "🌍", 999, 999, 999],
 ];
 
-// 判定は上から順に評価し、最初に当てはまったものを採用する。
-// 3サイズ = [bust, waist, hip]
+// 判定は上から順に評価し、最初に当てはまったものを採用する(レアなものほど上)。
+// 3サイズ = [bust, waist, hip]。reading は読み仮名(任意)。
+const spread = ([b, w, h]) => Math.max(b, w, h) - Math.min(b, w, h);
 const VERDICTS = [
   {
-    key: "godzilla", label: "ゴジラ", emoji: "🦖",
+    label: "無", reading: "む", emoji: "🕳️",
+    test: ([b, w, h]) => Math.max(b, w, h) <= 100,
+    comments: ["存在がほぼ観測できません。", "そこにいますか? いないかもしれません。", "素粒子の仲間と判定しました。"],
+  },
+  {
+    label: "滅", reading: "めつ", emoji: "☄️",
+    test: ([b, w, h]) => Math.min(b, w, h) >= 900,
+    comments: ["世界が終わります。", "隕石が先に逃げました。", "測定器が悲鳴を上げて壊れました。"],
+  },
+  {
+    label: "ゴジラ", emoji: "🦖",
     test: ([b, w, h]) => Math.min(b, w, h) >= 700,
     comments: ["上陸警報が発令されました。", "東京湾に影が見えます。", "もはや災害です。"],
   },
   {
-    key: "slim", label: "細", emoji: "🪡",
+    label: "糸", reading: "いと", emoji: "🧵",
+    test: ([b, w, h]) => Math.max(b, w, h) <= 200,
+    comments: ["針に通せます。", "もう体というより繊維です。", "風が吹いたらほどけそうです。"],
+  },
+  {
+    label: "細", reading: "ほそ", emoji: "🪡",
     test: ([b, w, h]) => Math.max(b, w, h) <= 300,
     comments: ["風が吹いたら飛びそうです。", "細いというより、もう線です。", "ちゃんと食べてください。"],
   },
   {
-    key: "beast", label: "獣", emoji: "🐗",
-    test: ([b, w, h]) => Math.max(b, w, h) - Math.min(b, w, h) >= 800,
+    label: "のっぺらぼう", emoji: "😶",
+    test: (s) => spread(s) <= 50,
+    comments: ["3サイズに凹凸がありません。顔もありません。", "どこが前かわかりません。", "つるんと完璧な均一です。"],
+  },
+  {
+    label: "ヤマタノオロチ", emoji: "🐍",
+    test: ([b, w, h]) => w >= Math.max(b, h) + 600,
+    comments: ["胴体だけ八つ首ぶんあります。", "酒樽を8つ用意してください。", "とぐろを巻いています。"],
+  },
+  {
+    label: "ろくろ首", emoji: "🧣",
+    test: ([b, w, h]) => h >= Math.max(b, w) + 600,
+    comments: ["夜中に首が伸びる体型です。", "下半身が異様に主張しています。", "障子の向こうに影が伸びています。"],
+  },
+  {
+    label: "鬼", reading: "おに", emoji: "👹",
+    test: ([b, w, h]) => b >= Math.max(w, h) + 600,
+    comments: ["金棒を持たせたくなる上半身です。", "節分に豆を投げられます。", "胸板が角より目立っています。"],
+  },
+  {
+    label: "獣", reading: "けもの", emoji: "🐗",
+    test: (s) => spread(s) >= 800,
     comments: ["バランスという概念がありません。", "野生が3サイズに出ています。", "人類の枠に収まりません。"],
   },
   {
-    key: "beauty", label: "美", emoji: "✨",
+    label: "谷", reading: "たに", emoji: "🏞️",
+    test: ([b, w, h]) => w <= 150 && b >= 500 && h >= 500,
+    comments: ["ウエストが渓谷になっています。", "深い谷を吹き抜ける風の音がします。", "世界遺産への登録を申請しました。"],
+  },
+  {
+    label: "妖", reading: "あやかし", emoji: "🦊",
+    test: ([b, w, h]) => b >= 700 && h >= 700 && w <= 350,
+    comments: ["人を惑わす曲線です。", "尻尾が9本ある気がします。", "夜道で振り返ってはいけません。"],
+  },
+  {
+    label: "美", reading: "び", emoji: "✨",
     test: ([b, w, h]) => b >= 500 && h >= 500 && w <= Math.min(b, h) - 200,
     comments: ["黄金比まで秒読みです。", "彫刻家が列を作っています。", "くびれの国宝に認定します。"],
   },
   {
-    key: "plump", label: "太", emoji: "🍙",
+    label: "龍", reading: "りゅう", emoji: "🐉",
+    test: ([b, w, h]) => b >= 700 && h >= 700 && w >= 500 && w < 700,
+    comments: ["雲を呼びそうな堂々たる体躯です。", "天に昇る準備ができています。", "願いを7つ叶えてくれそうです。"],
+  },
+  {
+    label: "梨", reading: "なし", emoji: "🍐",
+    test: ([b, w, h]) => h >= b + 400 && h >= w + 300,
+    comments: ["洋梨の収穫期です。", "安定感が抜群です。どっしり座れます。", "下半身に重心があって倒れません。"],
+  },
+  {
+    label: "階", reading: "かい", emoji: "🪜",
+    test: ([b, w, h]) => b + 250 <= w && w + 250 <= h,
+    comments: ["バスト→ウエスト→ヒップと綺麗に昇っています。", "段差でつまずかないでください。", "登り切ると景色がいいです。"],
+  },
+  {
+    label: "坂", reading: "さか", emoji: "🛝",
+    test: ([b, w, h]) => h + 250 <= w && w + 250 <= b,
+    comments: ["上から下まで一気に滑れます。", "ヒップに向かって急な下り坂です。", "転がり出したら止まりません。"],
+  },
+  {
+    label: "福", reading: "ふく", emoji: "😄",
+    test: ([b, w, h]) => w >= 850 && w >= Math.max(b, h) + 100,
+    comments: ["ご利益がありそうです。拝んでいいですか?", "七福神の8人目に推薦します。", "お腹を撫でると運が上がります。"],
+  },
+  {
+    label: "太", reading: "ふと", emoji: "🍙",
     test: ([b, w, h]) => w >= 600 && w >= Math.max(b, h) + 50,
     comments: ["福の神が宿っています。", "ウエストが主役です。", "ご飯がおいしい季節ですね。"],
   },
   {
-    key: "normal", label: "普", emoji: "🙂",
+    label: "丸", reading: "まる", emoji: "⚪",
+    test: (s) => spread(s) <= 120 && Math.min(...s) >= 450,
+    comments: ["どこから見ても同じ丸さです。", "転がすとよく進みます。", "角が1つもありません。"],
+  },
+  {
+    label: "棒", reading: "ぼう", emoji: "🥖",
+    test: (s) => spread(s) <= 120,
+    comments: ["上から下までまっすぐです。", "物干し竿として優秀です。", "ストンと一直線の潔さです。"],
+  },
+  {
+    label: "鵺", reading: "ぬえ", emoji: "🌀",
+    test: ([b, w, h]) => Math.min(b, w, h) >= 250 && Math.max(b, w, h) <= 750 && spread([b, w, h]) >= 200,
+    comments: ["正体不明です。頭は猿、胴は狸、尾は蛇。", "何系なのか判定不能です。", "つかみどころのない体型です。"],
+  },
+  {
+    label: "普", reading: "ふつう", emoji: "🙂",
     test: () => true,
     comments: ["ザ・平均点です。", "どこにでもいる安心感があります。", "モブとして最高の逸材です。"],
   },
@@ -278,6 +367,8 @@ const SIZE_LABELS = ["バスト", "ウエスト", "ヒップ"];
 function render(r) {
   $("v-emoji").textContent = r.verdict.emoji;
   $("v-label").textContent = r.verdict.label;
+  $("v-label").classList.toggle("long", r.verdict.label.length > 3);
+  $("v-reading").textContent = r.verdict.reading ? `(${r.verdict.reading})` : "";
   $("v-comment").textContent = `${r.name}さん、${r.comment}`;
 
   $("sizes").replaceChildren(...r.sizes.map((v, i) => {
