@@ -19,6 +19,19 @@ X や LINE のプレビュー画像(サムネイル)を結果ごとに変える�
 - 画像は判定ごとに 1 枚です。名前や 3 サイズの数値は載りません。
 - `r/` 以下は生成物です。判定を追加・変更したら再生成が必要で、番号がずれるときは共有ページも作り直します。
 
+## セキュリティ
+
+- 外部のスクリプトやサービスは使わず、入力した名前は `textContent` / `encodeURIComponent` だけで扱います(`innerHTML` に渡すのは固定文字列のみ)。
+- GitHub Pages は HTTP ヘッダーを設定できないため、CSP(Content Security Policy)は `<meta http-equiv>` で指定しています。`index.html` は `script` と `style` をハッシュで許可し、通信(`connect-src`)は禁止、フォントは同じ origin のみです。`frame-ancestors` は meta では効かないので指定できません。
+- **`index.html` の `<script>` か `<style>` の中身を変えたら、CSP のハッシュを更新してください。** 更新しないと、スクリプトかスタイルがブラウザに止められてページが動かなくなります。更新は、リポジトリのルートで次を実行します。
+
+  ```sh
+  node -e 'const fs=require("fs"),c=require("crypto");let s=fs.readFileSync("index.html","utf8");const h=t=>"sha256-"+c.createHash("sha256").update(t).digest("base64");const sc=s.match(/<script>([\s\S]*?)<\/script>/)[1],st=s.match(/<style>([\s\S]*?)<\/style>/)[1];s=s.replace(/script-src \x27sha256-[^\x27]*\x27/,`script-src \x27${h(sc)}\x27`).replace(/style-src \x27sha256-[^\x27]*\x27/,`style-src \x27${h(st)}\x27`);fs.writeFileSync("index.html",s)'
+  ```
+
+- `r/` の共有ページにも CSP を入れています(リダイレクト用の 1 行のスクリプトだけを、ハッシュで許可)。
+- 名前の最大文字数(1000)は、入力欄と `analyze()` の両方で検証しています。
+
 ## フォント
 
 書体は [Google Fonts](https://fonts.google.com/) から取得し、使う文字だけに subset して `fonts/` に同梱しています。すべて SIL Open Font License(OFL) 1.1 です。ライセンス全文は `fonts/FONT-LICENSES_*.txt` にあります。
