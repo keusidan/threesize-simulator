@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>3サイズ シミュレーター</title>
+<!-- Google Fonts(判定ごとに書体を変えて演出する。いずれも SIL OFL などのオープンなライセンス) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Maru+Gothic:wght@500;700&family=Zen+Kurenaido&family=Klee+One&family=Rampart+One&family=Stick&family=Yomogi&family=Potta+One&family=Reggae+One&family=Hina+Mincho&family=Yuji+Syuku&family=Yuji+Mai&family=Yuji+Boku&family=Kaisei+Tokumin&family=Zen+Antique&family=Shippori+Mincho+B1&family=Kaisei+Decol&family=Mochiy+Pop+One&family=Hachi+Maru+Pop&family=Yusei+Magic&family=RocknRoll+One&family=Zen+Old+Mincho&family=Kiwi+Maru&family=Train+One&family=New+Tegomin&family=DotGothic16&display=swap">
 <style>
   /* 初期状態は白黒。結果が出ると JS が --accent / --on-accent / --tint を上書きする。 */
   :root {
@@ -16,6 +20,8 @@
     --tint: 0%;
     --border: #dcdcdc;
     --bar-bg: #e6e6e6;
+    --font-body: "Zen Maru Gothic", system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    --rainbow: linear-gradient(90deg, hsl(0 90% 76%), hsl(35 95% 74%), hsl(58 90% 72%), hsl(130 70% 72%), hsl(190 85% 72%), hsl(240 85% 80%), hsl(290 80% 78%), hsl(340 90% 78%), hsl(0 90% 76%));
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -29,6 +35,24 @@
       --bar-bg: #333333;
     }
   }
+  /* 美だけ特別に虹色。タイルの幅(px)ぶん動かすと継ぎ目なく流れ続ける。 */
+  html.rainbow .verdict,
+  html.rainbow button {
+    background: var(--rainbow) 0 0 / 1200px 100%;
+    color: #111;
+    animation: rainbow-flow 8s linear infinite;
+  }
+  html.rainbow body {
+    background:
+      linear-gradient(color-mix(in srgb, var(--bg) 78%, transparent), color-mix(in srgb, var(--bg) 78%, transparent)),
+      var(--rainbow) 0 0 / 1200px 100%;
+    animation: rainbow-flow-body 8s linear infinite;
+  }
+  @keyframes rainbow-flow { to { background-position: 1200px 0; } }
+  @keyframes rainbow-flow-body { to { background-position: 0 0, 1200px 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    html.rainbow .verdict, html.rainbow button, html.rainbow body { animation: none; }
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0;
@@ -36,12 +60,12 @@
     background: color-mix(in srgb, var(--accent) var(--tint), var(--bg));
     transition: background .5s;
     color: var(--text);
-    font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    font-family: var(--font-body);
     line-height: 1.6;
   }
   main { max-width: 560px; margin: 0 auto; }
-  h1 { font-size: 1.5rem; margin: 0 0 4px; }
-  .lead { color: var(--muted); margin: 0 0 20px; font-size: .9rem; }
+  h1 { font-family: "Dela Gothic One", var(--font-body); font-weight: 400; font-size: 1.6rem; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 20px; font-size: 1.05rem; font-weight: 700; }
   form { display: flex; gap: 8px; }
   input[type="text"] {
     flex: 1;
@@ -84,10 +108,10 @@
     transition: background .5s, color .5s;
   }
   .verdict .emoji { font-size: 3rem; line-height: 1.2; }
-  .verdict .label { font-size: 2.4rem; font-weight: 800; }
+  .verdict .label { font-size: 2.4rem; font-weight: 400; } /* 装飾書体は太字が無いので偽太字を避ける */
   .verdict .label.long { font-size: 1.7rem; }
   .verdict .reading { font-size: .85rem; min-height: 1.2em; opacity: .8; }
-  .verdict .color { margin-top: 8px; font-size: .8rem; font-family: ui-monospace, monospace; opacity: .8; }
+  .verdict .color { margin-top: 8px; font-size: .8rem; font-family: "DotGothic16", ui-monospace, monospace; opacity: .8; }
   .size { display: grid; grid-template-columns: 5.5em 1fr 3em; align-items: center; gap: 8px; margin: 6px 0; }
   .size .name { font-size: .9rem; color: var(--muted); }
   .size .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -110,7 +134,7 @@
 <body>
 <main>
   <h1>3サイズ シミュレーター</h1>
-  <p class="lead">名前を入れると、ハッシュ値からバスト・ウエスト・ヒップ(各 0〜999)を算出し、いちばん近いキャラクターと判定を出します。同じ名前なら必ず同じ結果です。測定すると、バストが赤・ウエストが緑・ヒップが青になって、あなたの色に染まります。</p>
+  <p class="lead">あなたの3サイズはいくつ？</p>
 
   <form id="form" autocomplete="off">
     <input id="name" type="text" placeholder="名前を入力" maxlength="64" aria-label="名前">
@@ -140,8 +164,10 @@
     <h2>惜しかった候補</h2>
     <ol class="runner" id="runner"></ol>
 
-    <h2>SHA-256</h2>
-    <div class="hash" id="hash"></div>
+    <div id="hash-box">
+      <h2>SHA-256</h2>
+      <div class="hash" id="hash"></div>
+    </div>
   </section>
 
   <footer>ネタです。実在の人物の体型や、キャラクターの公式設定とは一切関係ありません。</footer>
@@ -151,6 +177,9 @@
 "use strict";
 
 const MAX_SIZE = 999;
+
+// 「xxx,xxx,xxx」(各1〜3桁)。NFKC 正規化後なので全角数字・全角カンマも通る。
+const CHEAT_RE = /^(\d{1,3})\s*[,、]\s*(\d{1,3})\s*[,、]\s*(\d{1,3})$/;
 
 // キャラクター表: [名前, emoji, バスト, ウエスト, ヒップ]
 // 数値はすべてネタ値。実在作品の公式設定ではない。
@@ -230,35 +259,42 @@ const CHARACTERS = [
 const SLIM_MAX = [75, 55, 80];        // 3つとも平均より明確に小さければ「細」
 const TIER_LIMITS = [150, 300, 500, 700]; // 平均サイズの区切り。超えるごとに段階が上がる
 
-// [label, reading, emoji] を、大きさの段階 0(人間サイズ)〜4(厄災級) の順に並べる。
+// [label, reading, emoji, Google Fonts の font-family] を、大きさの段階 0(人間サイズ)〜4(厄災級) の順に並べる。
 const VERDICT_TABLE = {
   plain: [
-    ["普", "ふつう", "🙂"], ["巨人", "きょじん", "🧌"], ["鵺", "ぬえ", "🌀"],
-    ["クトゥルフ", "", "🐙"], ["ゴジラ", "", "🦖"],
+    ["普", "ふつう", "🙂", "Zen Maru Gothic"], ["巨人", "きょじん", "🧌", "Dela Gothic One"],
+    ["鵺", "ぬえ", "🌀", "Yuji Boku"], ["クトゥルフ", "", "🐙", "Shippori Mincho B1"],
+    ["ゴジラ", "", "🦖", "Rampart One"],
   ],
   even: [
-    ["無", "む", "⚫"], ["ぬりかべ", "", "🧱"], ["のっぺらぼう", "", "😶"],
-    ["ダイダラボッチ", "", "⛰️"], ["滅", "めつ", "☄️"],
+    ["無", "む", "⚫", "Klee One"], ["ぬりかべ", "", "🧱", "Stick"],
+    ["のっぺらぼう", "", "😶", "Yomogi"], ["ダイダラボッチ", "", "⛰️", "Potta One"],
+    ["滅", "めつ", "☄️", "Reggae One"],
   ],
   hour: [
-    ["美", "び", "✨"], ["九尾の狐", "きゅうびのきつね", "🦊"], ["妖", "あやかし", "🌙"],
-    ["ラミア", "", "🐍"], ["傾国", "けいこく", "👑"],
+    ["美", "び", "✨", "Hina Mincho"], ["九尾の狐", "きゅうびのきつね", "🦊", "Yuji Syuku"],
+    ["妖", "あやかし", "🌙", "Yuji Mai"], ["ラミア", "", "🐍", "Kaisei Tokumin"],
+    ["傾国", "けいこく", "👑", "Zen Antique"],
   ],
   barrel: [
-    ["太", "ふと", "🍙"], ["福", "ふく", "😄"], ["ぬらりひょん", "", "👴"],
-    ["蝦蟇", "がま", "🐸"], ["富士", "ふじ", "🗻"],
+    ["太", "ふと", "🍙", "Mochiy Pop One"], ["福", "ふく", "😄", "Hachi Maru Pop"],
+    ["ぬらりひょん", "", "👴", "Yusei Magic"], ["蝦蟇", "がま", "🐸", "RocknRoll One"],
+    ["富士", "ふじ", "🗻", "Zen Old Mincho"],
   ],
   pear: [
-    ["梨", "なし", "🍐"], ["山姥", "やまんば", "👵"], ["土蜘蛛", "つちぐも", "🕷️"],
-    ["絡新婦", "じょろうぐも", "🕸️"], ["海坊主", "うみぼうず", "🌊"],
+    ["梨", "なし", "🍐", "Kiwi Maru"], ["山姥", "やまんば", "👵", "Yuji Boku"],
+    ["土蜘蛛", "つちぐも", "🕷️", "Train One"], ["絡新婦", "じょろうぐも", "🕸️", "Kaisei Decol"],
+    ["海坊主", "うみぼうず", "🌊", "New Tegomin"],
   ],
   vee: [
-    ["武", "ぶ", "💪"], ["鬼", "おに", "👹"], ["天狗", "てんぐ", "👺"],
-    ["牛鬼", "うしおに", "🐂"], ["阿修羅", "あしゅら", "🔱"],
+    ["武", "ぶ", "💪", "Reggae One"], ["鬼", "おに", "👹", "Dela Gothic One"],
+    ["天狗", "てんぐ", "👺", "Yuji Syuku"], ["牛鬼", "うしおに", "🐂", "Kaisei Tokumin"],
+    ["阿修羅", "あしゅら", "🔱", "Zen Antique"],
   ],
   beast: [
-    ["獣", "けもの", "🐗"], ["河童", "かっぱ", "🥒"], ["ろくろ首", "ろくろくび", "🧣"],
-    ["キメラ", "", "🦁"], ["ヤマタノオロチ", "", "🐍"],
+    ["獣", "けもの", "🐗", "Yusei Magic"], ["河童", "かっぱ", "🥒", "Hachi Maru Pop"],
+    ["ろくろ首", "ろくろくび", "🧣", "Zen Kurenaido"], ["キメラ", "", "🦁", "DotGothic16"],
+    ["ヤマタノオロチ", "", "🐍", "Train One"],
   ],
 };
 
@@ -277,11 +313,14 @@ function shapeOf([b, w, h]) {
 }
 
 function judge(sizes) {
-  if (sizes.every((v, i) => v <= SLIM_MAX[i])) return { label: "細", reading: "ほそ", emoji: "🪡" };
+  if (sizes.every((v, i) => v <= SLIM_MAX[i])) return { label: "細", reading: "ほそ", emoji: "🪡", font: "Zen Kurenaido" };
+  const shape = shapeOf(sizes);
   const avg = (sizes[0] + sizes[1] + sizes[2]) / 3;
-  const tier = TIER_LIMITS.filter((limit) => avg >= limit).length;
-  const [label, reading, emoji] = VERDICT_TABLE[shapeOf(sizes)][tier];
-  return { label, reading, emoji };
+  // 極端型は最小値が平均を引き下げて最上位に届かなくなるので、最大値を混ぜて大きさを見る。
+  const size = shape === "beast" ? (Math.max(...sizes) + avg) / 2 : avg;
+  const tier = TIER_LIMITS.filter((limit) => size >= limit).length;
+  const [label, reading, emoji, font] = VERDICT_TABLE[shape][tier];
+  return { label, reading, emoji, font };
 }
 
 // 名前を正規化し、SHA-256 のバイト列(32 byte)を返す。
@@ -308,6 +347,12 @@ function ranking(sizes) {
 async function analyze(rawName) {
   const name = rawName.normalize("NFKC").trim();
   if (!name) throw new Error("名前を入力してください");
+  // 裏技: 「バスト,ウエスト,ヒップ」を直接入力すると、ハッシュを通さずそのまま3サイズになる。
+  const cheat = CHEAT_RE.exec(name);
+  if (cheat) {
+    const sizes = cheat.slice(1).map(Number);
+    return { name, hash: null, sizes, verdict: judge(sizes), ranked: ranking(sizes) };
+  }
   const bytes = await sha256Bytes(name);
   const sizes = sizesFromHash(bytes);
   return { name, hash: toHex(bytes), sizes, verdict: judge(sizes), ranked: ranking(sizes) };
@@ -332,9 +377,10 @@ function luminance([r, g, b]) {
 // 黒文字と白文字のうち、コントラスト比が高いほうを返す。
 const textColorOn = (rgb) => (luminance(rgb) > 0.179 ? "#111111" : "#ffffff");
 
-// null を渡すと初期の白黒に戻る。
-function applyTheme(rgb) {
+// rgb に null を渡すと初期の白黒に戻る。rainbow が true なら虹色(美の特別演出)。
+function applyTheme(rgb, rainbow = false) {
   const root = document.documentElement.style;
+  document.documentElement.classList.toggle("rainbow", rainbow);
   if (!rgb) {
     ["--accent", "--on-accent", "--tint"].forEach((k) => root.removeProperty(k));
     return;
@@ -347,13 +393,14 @@ function applyTheme(rgb) {
 function render(r) {
   $("v-emoji").textContent = r.verdict.emoji;
   $("v-label").textContent = r.verdict.label;
+  $("v-label").style.fontFamily = `"${r.verdict.font}", var(--font-body)`;
   $("v-label").classList.toggle("long", r.verdict.label.length > 3);
   $("v-reading").textContent = r.verdict.reading ? `(${r.verdict.reading})` : "";
 
   const rgb = toRgb(r.sizes);
   const hex = "#" + rgb.map((c) => c.toString(16).padStart(2, "0")).join("").toUpperCase();
   $("v-color").textContent = `R${rgb[0]} G${rgb[1]} B${rgb[2]}  ${hex}`;
-  applyTheme(rgb);
+  applyTheme(rgb, r.verdict.label === "美");
 
   $("sizes").replaceChildren(...r.sizes.map((v, i) => {
     const row = document.createElement("div");
@@ -377,7 +424,8 @@ function render(r) {
     return li;
   }));
 
-  $("hash").textContent = r.hash;
+  $("hash-box").hidden = !r.hash;
+  $("hash").textContent = r.hash ?? "";
   $("result").hidden = false;
 }
 
@@ -385,7 +433,13 @@ $("form").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("error").textContent = "";
   try {
-    render(await analyze($("name").value));
+    const result = await analyze($("name").value);
+    // 判定の書体が読み込まれてから表示する(待ちすぎないよう 1.5 秒で打ち切る)。
+    await Promise.race([
+      document.fonts.load(`1em "${result.verdict.font}"`, result.verdict.label).catch(() => {}),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
+    render(result);
   } catch (err) {
     $("result").hidden = true;
     applyTheme(null);
