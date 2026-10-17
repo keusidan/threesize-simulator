@@ -192,7 +192,7 @@
   <p class="lead">あなたの3サイズはいくつ？</p>
 
   <form id="form" autocomplete="off">
-    <input id="name" type="text" placeholder="名前を入力" maxlength="64" aria-label="名前">
+    <input id="name" type="text" placeholder="名前を入力" maxlength="1000" aria-label="名前">
     <button type="submit">測定</button>
   </form>
   <p id="error" role="alert"></p>
@@ -482,11 +482,18 @@ function applyTheme(rgb, rainbow = false) {
   root.setProperty("--tint", "14%");
 }
 
+// 共有文の名前の行は、長い名前だと X の文字数(全角は 2 文字分)を超えるので、先頭 30 文字までにして省略記号を付ける。
+const SHARE_NAME_MAX = 30;
+const shortName = (name) => {
+  const chars = Array.from(name); // サロゲートペア(絵文字など)を 1 文字として数える
+  return chars.length > SHARE_NAME_MAX ? chars.slice(0, SHARE_NAME_MAX).join("") + "…" : name;
+};
+
 // 共有する文面。1 行目に名前(○○さんの)を入れる。裏技の数値入力(hash が無い)のときは名前の行を省く。
 function shareText(r) {
   const [b, w, h] = r.sizes;
   return [
-    ...(r.hash ? [`${r.name}さんの`] : []),
+    ...(r.hash ? [`${shortName(r.name)}さんの`] : []),
     `3サイズ判定は「${r.verdict.label}」でした ${r.verdict.emoji}`,
     `バスト${b} / ウエスト${w} / ヒップ${h}`,
     `いちばん近いキャラ: ${r.ranked[0].c[1]}${r.ranked[0].c[0]}`,
