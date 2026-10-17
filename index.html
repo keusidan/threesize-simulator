@@ -478,11 +478,11 @@ function applyTheme(rgb, rainbow = false) {
   root.setProperty("--tint", "14%");
 }
 
-// 共有する文面。1 行目に名前(○○さんは)を入れる。裏技の数値入力(hash が無い)のときは名前の行を省く。
+// 共有する文面。1 行目に名前(○○さんの)を入れる。裏技の数値入力(hash が無い)のときは名前の行を省く。
 function shareText(r) {
   const [b, w, h] = r.sizes;
   return [
-    ...(r.hash ? [`${r.name}さんは`] : []),
+    ...(r.hash ? [`${r.name}さんの`] : []),
     `3サイズ判定は「${r.verdict.label}」でした ${r.verdict.emoji}`,
     `バスト${b} / ウエスト${w} / ヒップ${h}`,
     `いちばん近いキャラ: ${r.ranked[0].c[1]}${r.ranked[0].c[0]}`,
